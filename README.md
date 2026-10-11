@@ -18,6 +18,16 @@ Si la dieta cambia, se ajusta en un solo lugar: `RACION` en `js/calc.js`.
 - **¿Cuántas bolsitas quedan?:** según la comida preparada y la utilizada (en bolsitas, días, kg o g).
 - **Bolsitas en el congelador:** conteo con historial ("usé 1 bolsita", "usé un día", "agregar preparación"). Se guarda en el navegador (`localStorage`), así que es por dispositivo: lo que se anota en un celular no aparece en otro.
 
+- **Tema claro/oscuro:** claro por defecto. El botón del encabezado lo cambia y la elección se recuerda en cada dispositivo.
+
+## En iPhone y iPad
+
+Pensada primero para el celular: campos de 16 px (Safari no hace zoom al tocarlos), teclado numérico con coma decimal, márgenes que respetan el notch y botones grandes.
+
+Para tenerla como app: en Safari, **Compartir → Agregar a pantalla de inicio**. Queda con el ícono de la huella y abre en Safari, así que comparte el conteo de bolsitas con el Safari de ese mismo equipo.
+
+Safari borra los datos guardados de un sitio que no se abre en 7 días de uso del navegador. Si se usa a diario no pasa nada, pero tras una pausa larga el conteo puede volver a cero.
+
 ## Publicar en GitHub Pages
 
 En el repositorio: **Settings → Pages → Build and deployment → Source: "Deploy from a branch"**, rama `main`, carpeta `/ (root)`. Queda en `https://phernandezv.github.io/claude-comidas-apolo-app/`.

@@ -2,15 +2,24 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#d98a2b">
+  <meta name="apple-mobile-web-app-title" content="Apolo">
+  <meta name="format-detection" content="telephone=no">
   <title>Comidas de Apolo</title>
   <meta name="description" content="Ración diaria de Apolo, convertidor carne/verdura y conteo de bolsitas de comida.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐕</text></svg>">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // Aplica el tema guardado antes de pintar, para que no parpadee. Claro por defecto.
+    try { if (localStorage.getItem("apolo.tema") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}
+  </script>
 </head>
 <body>
   <header class="hero">
     <div class="wrap">
+      <button id="tema" class="tema" type="button" aria-label="Cambiar tema claro/oscuro"></button>
       <p class="kicker">Golden Retriever</p>
       <h1>Comidas de Apolo</h1>
       <p class="lead">Ración diaria, proporción carne/verdura y conteo de bolsitas preparadas.</p>
@@ -44,7 +53,7 @@
       <div class="row">
         <label class="field grow">
           <span id="conv-label">Carne</span>
-          <input id="conv-cant" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+          <input id="conv-cant" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
         </label>
         <label class="field">
           <span>Unidad</span>
@@ -61,11 +70,11 @@
       <div class="row">
         <label class="field grow">
           <span>Carne</span>
-          <input id="prep-carne" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+          <input id="prep-carne" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
         </label>
         <label class="field grow">
           <span>Verdura</span>
-          <input id="prep-verdura" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+          <input id="prep-verdura" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
         </label>
         <label class="field">
           <span>Unidad</span>
@@ -82,7 +91,7 @@
       <div class="row">
         <label class="field grow">
           <span>Días de comida</span>
-          <input id="dias-cant" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
+          <input id="dias-cant" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
         </label>
       </div>
       <output id="dias-res" class="result" for="dias-cant"></output>
@@ -95,7 +104,7 @@
       <div class="row">
         <label class="field grow">
           <span>Comida preparada</span>
-          <input id="q-prep" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+          <input id="q-prep" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
         </label>
         <label class="field">
           <span>Unidad</span>
@@ -107,7 +116,7 @@
       <div class="row">
         <label class="field grow">
           <span>Comida utilizada</span>
-          <input id="q-usado" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+          <input id="q-usado" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
         </label>
         <label class="field">
           <span>Unidad</span>
@@ -134,7 +143,7 @@
       <div class="row">
         <label class="field grow">
           <span>Bolsitas nuevas preparadas</span>
-          <input id="inv-nuevas" type="number" inputmode="numeric" min="1" step="1" placeholder="0">
+          <input id="inv-nuevas" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
         </label>
         <button id="inv-agregar" class="btn primary" type="button">Agregar</button>
       </div>

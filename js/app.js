@@ -30,6 +30,20 @@ function lineasRendimiento(r) {
     linea("Alcanza para", `${num(r.dias)} ${plural(r.dias, "día", "días")}`);
 }
 
+// ---- Tema claro/oscuro (claro por defecto; la elección se guarda en este navegador) ----
+const meta = document.querySelector('meta[name="theme-color"]');
+function aplicarTema(tema) {
+  document.documentElement.dataset.theme = tema;
+  $("#tema").textContent = tema === "dark" ? "☀️ Claro" : "🌙 Oscuro";
+  meta.content = tema === "dark" ? "#5e3a0c" : "#d98a2b";
+}
+aplicarTema(document.documentElement.dataset.theme === "dark" ? "dark" : "light");
+$("#tema").addEventListener("click", () => {
+  const tema = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  aplicarTema(tema);
+  try { localStorage.setItem("apolo.tema", tema); } catch { /* sin almacenamiento: dura mientras la página esté abierta */ }
+});
+
 // ---- Ración diaria (texto informativo) ----
 const info = {
   carneDia: peso(RACION.carneDia),
