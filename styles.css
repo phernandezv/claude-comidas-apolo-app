@@ -185,10 +185,23 @@ input[type="date"] {
   padding: 0 12px;
   height: 46px;
   width: 100%;
-  -webkit-appearance: none;
-  appearance: none;
+  display: block;
 }
+/* Safari en iOS centra el texto de la fecha; se alinea como los demás campos. */
+input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 input[type="date"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.form-box {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+.form-box h3 { margin: 0 0 4px; }
+.form-box input[type="text"], .form-box input[type="date"] { background: var(--surface); }
+.form-box .row { margin-top: 8px; }
+.error, .error:focus { border-color: var(--warn) !important; outline: 2px solid var(--warn) !important; }
+.msg { margin: 0 0 10px; font-weight: 600; }
 .log .quitar { margin-left: auto; font-size: 0.85rem; }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 .actions .btn { flex: 1 1 140px; }

@@ -51,18 +51,22 @@
       </div>
       <div id="seg-plan" class="plan"></div>
 
-      <h3>Registrar preparación</h3>
-      <div class="row">
-        <label class="field grow">
-          <span>Fecha</span>
-          <input id="seg-fecha" type="date">
-        </label>
-        <label class="field grow">
-          <span>Bolsitas que salieron</span>
-          <input id="seg-bolsitas" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
-        </label>
+      <div class="form-box">
+        <h3>Registrar una preparación nueva</h3>
+        <p class="hint small">Escribe aquí la fecha y cuántas bolsitas salieron, y luego toca <strong>Registrar preparación</strong>.</p>
+        <div class="row">
+          <label class="field grow">
+            <span>Fecha</span>
+            <input id="seg-fecha" type="date">
+          </label>
+          <label class="field grow">
+            <span>Bolsitas que salieron</span>
+            <input id="seg-bolsitas" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej.: 90">
+          </label>
+        </div>
+        <p id="seg-msg" class="msg" role="status" hidden></p>
+        <button id="seg-registrar" class="btn primary full" type="button">Registrar preparación</button>
       </div>
-      <button id="seg-registrar" class="btn primary full" type="button">Registrar</button>
 
       <h3>Registro</h3>
       <ul id="seg-registro" class="log"></ul>

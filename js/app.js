@@ -280,16 +280,29 @@ function pintarSeguimiento() {
 }
 
 $("#seg-fecha").value = hoyIso();
+// Aviso dentro de la página (no ventana emergente): en iPhone una alerta tapa el formulario.
+function mensaje(texto, tipo, campo) {
+  const m = $("#seg-msg");
+  m.textContent = texto;
+  m.className = `msg ${tipo}`;
+  m.hidden = !texto;
+  document.querySelectorAll("#seguimiento .error").forEach((el) => el.classList.remove("error"));
+  if (campo) {
+    campo.classList.add("error");
+    campo.focus();
+  }
+}
+["#seg-fecha", "#seg-bolsitas"].forEach((s) => $(s).addEventListener("input", () => mensaje("")));
+
 $("#seg-registrar").addEventListener("click", () => {
   const f = $("#seg-fecha").value;
   const n = Math.floor(leer($("#seg-bolsitas")) ?? 0);
-  if (!f || n <= 0) {
-    alert("Pon la fecha y cuántas bolsitas salieron.");
-    return;
-  }
+  if (!f) return mensaje("Elige la fecha de la preparación.", "warn", $("#seg-fecha"));
+  if (n <= 0) return mensaje("Escribe cuántas bolsitas salieron (por ejemplo 90).", "warn", $("#seg-bolsitas"));
   registro = [...registro, { fecha: f, bolsitas: n }];
   guardarRegistro();
   $("#seg-bolsitas").value = "";
   pintarSeguimiento();
+  mensaje(`✓ Registrada: ${fecha(f)}, ${n} ${plural(n, "bolsita", "bolsitas")}.`, "ok");
 });
 pintarSeguimiento();
