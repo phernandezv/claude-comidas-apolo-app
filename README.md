@@ -17,7 +17,7 @@ Si la dieta cambia, se ajusta en un solo lugar: `RACION` en `js/calc.js`.
 - **¿Cuánto preparo con lo que tengo?:** con la carne y la verdura disponibles, cuánto usar de cada una, qué sobra y cuánto falta comprar para aprovechar todo.
 - **¿Cuánto compro para varios días?:** carne, verdura y bolsitas para N días.
 - **¿Cuántas bolsitas quedan?:** según la comida preparada y la utilizada (en bolsitas, días, kg o g).
-- **Bolsitas en el congelador:** conteo con historial ("usé 1 bolsita", "usé un día", "agregar preparación"). Se guarda en el navegador (`localStorage`), así que es por dispositivo: lo que se anota en un celular no aparece en otro.
+- **Seguimiento de preparaciones:** registro con fecha y bolsitas que salieron. Calcula las bolsitas que quedan hoy (2 por día desde el día siguiente a cada preparación; lo que sobra se suma a la siguiente), cuándo se acaban, la **próxima preparación** (el último sábado antes de que se acaben, con las bolsitas que quedarán ese día) y cuándo **encargar la carne** (dos sábados antes), con la carne y verdura para la misma cantidad de bolsitas que la última vez. Arranca con la preparación del sábado 10 de octubre de 2026 (102 bolsitas). Se guarda en el navegador (`localStorage`), así que es por dispositivo: lo que se registra en un celular no aparece en otro.
 
 - **Tema claro/oscuro:** claro por defecto. El botón del encabezado lo cambia y la elección se recuerda en cada dispositivo.
 

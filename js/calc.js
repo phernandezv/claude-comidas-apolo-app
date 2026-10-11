@@ -119,3 +119,74 @@ export function porTandas(capacidad, carneTotal = 0) {
     mezclaTanda: total / tandas,
   };
 }
+
+// ---- Calendario de preparaciones ----
+// Fechas como texto "AAAA-MM-DD" (fecha local, sin hora), para evitar líos de zona horaria.
+
+const DIA_MS = 86400000;
+const aDia = (iso) => {
+  const [a, m, d] = iso.split("-").map(Number);
+  return Date.UTC(a, m - 1, d) / DIA_MS;
+};
+const aIso = (dia) => new Date(dia * DIA_MS).toISOString().slice(0, 10);
+export const sumarDias = (iso, n) => aIso(aDia(iso) + n);
+export const diasEntre = (desde, hasta) => aDia(hasta) - aDia(desde);
+// 0 = domingo … 6 = sábado.
+export const diaSemana = (iso) => new Date(aDia(iso) * DIA_MS).getUTCDay();
+
+export const SABADO = 6;
+export const SEMANAS_ANTES_ENCARGO = 2; // la carne se encarga dos sábados antes de preparar
+
+// Simula día a día el congelador a partir del registro de preparaciones
+// ([{ fecha, bolsitas }]). Supuesto: el día de una preparación las bolsitas nuevas
+// no se tocan (ese día Apolo come de lo anterior) y desde el día siguiente come
+// `RACION.tomasDia` por día. Lo que sobra de una preparación se suma a la siguiente.
+//
+// Devuelve, para `hoy`:
+//  - quedanHoy: bolsitas al cerrar el día de hoy.
+//  - ultimoDia: último día en que todavía hay comida.
+//  - proximaPreparacion: último sábado (desde hoy) antes de que se acaben, o null si
+//    ya no queda ningún sábado a tiempo.
+//  - quedanEseDia: bolsitas que habrá al empezar ese sábado.
+//  - encargarCarne: dos sábados antes de la próxima preparación.
+export function estadoPreparaciones(registro, hoy) {
+  if (!registro.length) return null;
+  const orden = [...registro].sort((a, b) => diasEntre(b.fecha, a.fecha));
+  const porDia = new Map();
+  for (const p of orden) porDia.set(p.fecha, (porDia.get(p.fecha) ?? 0) + p.bolsitas);
+
+  const inicio = orden[0].fecha;
+  const fin = orden[orden.length - 1].fecha;
+  const alInicio = new Map(); // bolsitas al empezar cada día, desde hoy en adelante
+  let stock = 0;
+  let quedanHoy = 0;
+  let ultimoDia = null;
+  let dia = inicio;
+  // Hasta hoy (o la última preparación, si se registró una a futuro) y luego hasta que se acaben.
+  const limite = diasEntre(inicio, hoy) >= diasEntre(inicio, fin) ? hoy : fin;
+  for (let i = 0; i < 100000; i++) {
+    if (diasEntre(hoy, dia) >= 0) alInicio.set(dia, stock);
+    if (dia !== inicio) {
+      if (stock > 0) ultimoDia = dia;
+      stock = Math.max(0, stock - RACION.tomasDia);
+    }
+    stock += porDia.get(dia) ?? 0;
+    if (dia === hoy) quedanHoy = stock;
+    if (diasEntre(limite, dia) >= 0 && stock === 0) break;
+    dia = sumarDias(dia, 1);
+  }
+
+  const ultimaPreparacion = orden[orden.length - 1];
+  const r = { quedanHoy, ultimoDia, ultimaPreparacion, proximaPreparacion: null, quedanEseDia: 0, encargarCarne: null };
+  if (!ultimoDia || diasEntre(hoy, ultimoDia) < 0) return r; // ya se acabaron
+
+  // Último sábado ≤ último día con comida, sin pasar antes de hoy.
+  const atras = (diaSemana(ultimoDia) - SABADO + 7) % 7;
+  const sabado = sumarDias(ultimoDia, -atras);
+  if (diasEntre(hoy, sabado) >= 0) {
+    r.proximaPreparacion = sabado;
+    r.quedanEseDia = alInicio.get(sabado) ?? 0;
+    r.encargarCarne = sumarDias(sabado, -7 * SEMANAS_ANTES_ENCARGO);
+  }
+  return r;
+}

@@ -160,8 +160,36 @@ button, select, .seg label { touch-action: manipulation; }
 
 .inv { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .inv-num { display: flex; align-items: baseline; gap: 8px; }
-.inv-num #inv-count { font-size: 3rem; font-weight: 800; line-height: 1; color: var(--accent-strong); }
+.inv-num > span:first-child { font-size: 3rem; font-weight: 800; line-height: 1; color: var(--accent-strong); }
 .inv-num .lbl { color: var(--muted); }
+.plan { display: grid; gap: 10px; margin-top: 14px; }
+.paso {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+.paso .ico { font-size: 1.4rem; line-height: 1.2; }
+.paso strong:first-letter { text-transform: uppercase; }
+.paso.alerta { border-color: var(--warn); }
+.btn.full { width: 100%; }
+input[type="date"] {
+  font: inherit;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 12px;
+  height: 46px;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="date"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.log .quitar { margin-left: auto; font-size: 0.85rem; }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 .actions .btn { flex: 1 1 140px; }
 

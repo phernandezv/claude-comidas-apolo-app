@@ -42,6 +42,34 @@
         (<span data-v="pctCarne"></span> carne, <span data-v="pctVerdura"></span> verdura).</p>
     </section>
 
+    <!-- Seguimiento de preparaciones: fechas de la próxima preparación y del encargo de carne -->
+    <section class="card" id="seguimiento">
+      <h2>Seguimiento de preparaciones</h2>
+      <div class="inv">
+        <div class="inv-num"><span id="seg-quedan">0</span><span class="lbl">bolsitas hoy</span></div>
+        <p id="seg-dias" class="hint"></p>
+      </div>
+      <div id="seg-plan" class="plan"></div>
+
+      <h3>Registrar preparación</h3>
+      <div class="row">
+        <label class="field grow">
+          <span>Fecha</span>
+          <input id="seg-fecha" type="date">
+        </label>
+        <label class="field grow">
+          <span>Bolsitas que salieron</span>
+          <input id="seg-bolsitas" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+        </label>
+      </div>
+      <button id="seg-registrar" class="btn primary full" type="button">Registrar</button>
+
+      <h3>Registro</h3>
+      <ul id="seg-registro" class="log"></ul>
+      <p class="hint small">Cuenta 2 bolsitas por día desde el día siguiente a cada preparación; lo que sobra
+        se suma a la siguiente. El registro se guarda en este navegador y dispositivo.</p>
+    </section>
+
     <!-- Convertidor -->
     <section class="card" id="convertidor">
       <h2>Convertidor carne ⇄ verdura</h2>
@@ -161,29 +189,6 @@
       <output id="q-res" class="result" for="q-prep q-usado"></output>
     </section>
 
-    <!-- Inventario con seguimiento -->
-    <section class="card" id="inventario">
-      <h2>Bolsitas en el congelador</h2>
-      <div class="inv">
-        <div class="inv-num"><span id="inv-count">0</span><span class="lbl">bolsitas</span></div>
-        <p id="inv-dias" class="hint"></p>
-      </div>
-      <div class="actions">
-        <button class="btn" type="button" data-usar="1">Usé 1 bolsita</button>
-        <button class="btn" type="button" data-usar="2">Usé un día (2)</button>
-      </div>
-      <div class="row">
-        <label class="field grow">
-          <span>Bolsitas nuevas preparadas</span>
-          <input id="inv-nuevas" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
-        </label>
-        <button id="inv-agregar" class="btn primary" type="button">Agregar</button>
-      </div>
-      <h3>Historial</h3>
-      <ul id="inv-historial" class="log"></ul>
-      <p class="hint small">El conteo se guarda solo en este navegador y dispositivo.
-        <button id="inv-reiniciar" class="link" type="button">Reiniciar conteo</button></p>
-    </section>
   </main>
 
   <footer class="wrap foot">Hecho con cariño para Apolo 🐾</footer>

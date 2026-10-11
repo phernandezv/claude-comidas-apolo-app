@@ -1,6 +1,7 @@
 import {
   RACION, totalDia, gramosBolsita, carneBolsita, verduraBolsita, proporcion,
   desdeCarne, desdeVerdura, conLoQueTengo, paraDias, aGramos, cuantoQueda, porTandas, rendimiento,
+  estadoPreparaciones, sumarDias, diasEntre,
 } from "./calc.js";
 
 const $ = (sel) => document.querySelector(sel);
@@ -145,12 +146,14 @@ function preparar() {
   out.innerHTML = html;
   bolsitasPreparables = r.bolsitas;
   btn.hidden = r.bolsitas === 0;
-  btn.textContent = `Agregar ${r.bolsitas} ${plural(r.bolsitas, "bolsita", "bolsitas")} al congelador`;
+  btn.textContent = `Registrar ${r.bolsitas} ${plural(r.bolsitas, "bolsita", "bolsitas")} como preparación`;
 }
 ["#prep-carne", "#prep-verdura", "#prep-unidad"].forEach((s) => $(s).addEventListener("input", preparar));
+// Pasa las bolsitas al formulario de "Registrar preparación".
 $("#prep-agregar").addEventListener("click", () => {
-  movimiento(bolsitasPreparables, "Preparación");
-  $("#inventario").scrollIntoView({ behavior: "smooth" });
+  $("#seg-bolsitas").value = bolsitasPreparables;
+  $("#seg-fecha").value = hoyIso();
+  $("#seguimiento").scrollIntoView({ behavior: "smooth" });
 });
 
 // ---- Planificar por días ----
@@ -180,69 +183,113 @@ function quedan() {
 }
 ["#q-prep", "#q-prep-unidad", "#q-usado", "#q-usado-unidad"].forEach((s) => $(s).addEventListener("input", quedan));
 
-// ---- Inventario (se guarda en localStorage de este navegador) ----
-const CLAVE = "apolo.inventario.v1";
-let inv = { bolsitas: 0, historial: [] };
+// ---- Seguimiento de preparaciones (se guarda en localStorage de este navegador) ----
+const CLAVE_REGISTRO = "apolo.preparaciones.v1";
+// Punto de partida: la preparación del sábado 10 de octubre de 2026.
+const REGISTRO_INICIAL = [{ fecha: "2026-10-10", bolsitas: 102 }];
+let registro = REGISTRO_INICIAL;
 try {
-  const guardado = JSON.parse(localStorage.getItem(CLAVE));
-  if (guardado && Number.isFinite(guardado.bolsitas)) inv = guardado;
-} catch { /* sin almacenamiento disponible: el conteo vive solo mientras la página esté abierta */ }
+  const guardado = JSON.parse(localStorage.getItem(CLAVE_REGISTRO));
+  if (Array.isArray(guardado)) registro = guardado;
+} catch { /* sin almacenamiento: vale el registro inicial mientras la página esté abierta */ }
 
-function guardar() {
-  try { localStorage.setItem(CLAVE, JSON.stringify(inv)); } catch { /* idem */ }
+function guardarRegistro() {
+  try { localStorage.setItem(CLAVE_REGISTRO, JSON.stringify(registro)); } catch { /* idem */ }
 }
 
-function movimiento(cambio, motivo) {
-  if (!cambio) return;
-  inv.bolsitas = Math.max(0, inv.bolsitas + cambio);
-  inv.historial.unshift({ fecha: new Date().toISOString(), cambio, motivo, saldo: inv.bolsitas });
-  inv.historial = inv.historial.slice(0, 50);
-  guardar();
-  pintarInventario();
+// Fecha local de hoy como "AAAA-MM-DD".
+function hoyIso() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+const fechaLarga = new Intl.DateTimeFormat("es-CR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+const fechaCorta = new Intl.DateTimeFormat("es-CR", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const fecha = (iso, fmt = fechaLarga) => fmt.format(new Date(iso + "T00:00:00Z"));
+
+// "hoy", "mañana", "en 5 días", "hace 2 días".
+function cuando(iso, hoy) {
+  const d = diasEntre(hoy, iso);
+  if (d === 0) return "hoy";
+  if (d === 1) return "mañana";
+  if (d > 1) return `en ${d} días`;
+  return `hace ${-d} ${plural(-d, "día", "días")}`;
 }
 
-const fechaFmt = new Intl.DateTimeFormat("es-CR", { dateStyle: "medium", timeStyle: "short" });
-function pintarInventario() {
-  $("#inv-count").textContent = inv.bolsitas;
-  const dias = inv.bolsitas / RACION.tomasDia;
-  $("#inv-dias").innerHTML = inv.bolsitas
-    ? `Alcanza para <strong>${num(dias)} ${plural(dias, "día", "días")}</strong> · ${peso(inv.bolsitas * gramosBolsita)} de comida.`
-    : "No quedan bolsitas: toca preparar.";
-  $("#inv-dias").classList.toggle("warn", inv.bolsitas <= RACION.tomasDia * 2);
-  const ul = $("#inv-historial");
-  ul.innerHTML = "";
-  if (!inv.historial.length) {
-    ul.innerHTML = '<li class="muted">Sin movimientos todavía.</li>';
-    return;
+function paso(icono, titulo, cuerpo, clase = "") {
+  return `<div class="paso ${clase}"><span class="ico" aria-hidden="true">${icono}</span>
+    <div><strong>${titulo}</strong><div>${cuerpo}</div></div></div>`;
+}
+
+function pintarSeguimiento() {
+  const hoy = hoyIso();
+  const e = estadoPreparaciones(registro, hoy);
+  const plan = $("#seg-plan");
+  $("#seg-quedan").textContent = e ? e.quedanHoy : 0;
+  if (!e) {
+    $("#seg-dias").textContent = "Registra una preparación para ver las fechas.";
+    plan.innerHTML = "";
+  } else {
+    const dias = e.quedanHoy / RACION.tomasDia;
+    $("#seg-dias").innerHTML = e.quedanHoy
+      ? `Alcanzan para <strong>${num(dias)} ${plural(dias, "día", "días")}</strong>, hasta el ${fecha(e.ultimoDia)}.`
+      : "No quedan bolsitas: toca preparar.";
+    let html = "";
+    if (!e.quedanHoy) {
+      html = paso("⚠️", "Ya se acabaron", "Registra la nueva preparación cuando la hagan.", "alerta");
+    } else if (!e.proximaPreparacion) {
+      html = paso("⚠️", `Preparar antes del ${fecha(e.ultimoDia)}`,
+        "No queda ningún sábado antes de que se acaben.", "alerta");
+    } else {
+      // Para la próxima, la misma cantidad que la última preparación.
+      const n = e.ultimaPreparacion.bolsitas;
+      const encargoPasado = diasEntre(hoy, e.encargarCarne) < 0;
+      html =
+        paso("🥩", `Encargar la carne: ${fecha(e.encargarCarne)}`,
+          (encargoPasado ? "<span class=\"warn\">La fecha ya pasó: si todavía no la encargaron, háganlo cuanto antes.</span> "
+            : `<span class="muted">${cuando(e.encargarCarne, hoy)}</span> · `) +
+          `Para ${n} bolsitas: ${peso(n * carneBolsita)} de carne y ${peso(n * verduraBolsita)} de verdura.`,
+          encargoPasado ? "alerta" : "") +
+        paso("🍲", `Próxima preparación: ${fecha(e.proximaPreparacion)}`,
+          `<span class="muted">${cuando(e.proximaPreparacion, hoy)}</span> · Ese día quedarán ` +
+          `<strong>${e.quedanEseDia} ${plural(e.quedanEseDia, "bolsita", "bolsitas")}</strong> ` +
+          `(${num(e.quedanEseDia / RACION.tomasDia)} ${plural(e.quedanEseDia / RACION.tomasDia, "día", "días")} de comida).`) +
+        paso("📅", `Se acaban: ${fecha(sumarDias(e.ultimoDia, 1))}`,
+          `El último día con comida es el ${fecha(e.ultimoDia)}.`);
+    }
+    plan.innerHTML = html;
   }
-  for (const m of inv.historial.slice(0, 15)) {
+
+  const ul = $("#seg-registro");
+  ul.innerHTML = "";
+  const orden = [...registro].sort((a, b) => diasEntre(a.fecha, b.fecha));
+  if (!orden.length) ul.innerHTML = '<li class="muted">Sin preparaciones todavía.</li>';
+  for (const p of orden) {
     const li = document.createElement("li");
-    const signo = m.cambio > 0 ? "+" : "−";
-    li.innerHTML = `<span class="muted">${fechaFmt.format(new Date(m.fecha))}</span>
-      <span class="${m.cambio > 0 ? "in" : "out"}">${signo}${Math.abs(m.cambio)}</span>
-      <span class="muted">quedan ${m.saldo}</span>`;
-    li.prepend(document.createTextNode(m.motivo + " "));
+    li.innerHTML = `<span>${fecha(p.fecha, fechaCorta)}</span>
+      <span class="in">+${p.bolsitas} bolsitas</span>
+      <button class="link quitar" type="button" aria-label="Borrar">Borrar</button>`;
+    li.querySelector(".quitar").addEventListener("click", () => {
+      if (confirm(`¿Borrar la preparación del ${fecha(p.fecha)} (${p.bolsitas} bolsitas)?`)) {
+        registro = registro.filter((x) => x !== p);
+        guardarRegistro();
+        pintarSeguimiento();
+      }
+    });
     ul.append(li);
   }
 }
 
-document.querySelectorAll("[data-usar]").forEach((b) =>
-  b.addEventListener("click", () => {
-    const n = Math.min(Number(b.dataset.usar), inv.bolsitas);
-    movimiento(-n, "Usada");
-  }));
-$("#inv-agregar").addEventListener("click", () => {
-  const n = Math.floor(leer($("#inv-nuevas")) ?? 0);
-  if (n > 0) {
-    movimiento(n, "Preparación");
-    $("#inv-nuevas").value = "";
+$("#seg-fecha").value = hoyIso();
+$("#seg-registrar").addEventListener("click", () => {
+  const f = $("#seg-fecha").value;
+  const n = Math.floor(leer($("#seg-bolsitas")) ?? 0);
+  if (!f || n <= 0) {
+    alert("Pon la fecha y cuántas bolsitas salieron.");
+    return;
   }
+  registro = [...registro, { fecha: f, bolsitas: n }];
+  guardarRegistro();
+  $("#seg-bolsitas").value = "";
+  pintarSeguimiento();
 });
-$("#inv-reiniciar").addEventListener("click", () => {
-  if (confirm("¿Borrar el conteo de bolsitas y el historial?")) {
-    inv = { bolsitas: 0, historial: [] };
-    guardar();
-    pintarInventario();
-  }
-});
-pintarInventario();
+pintarSeguimiento();

@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   totalDia, gramosBolsita, carneBolsita, verduraBolsita, proporcion,
   desdeCarne, desdeVerdura, conLoQueTengo, paraDias, aGramos, cuantoQueda, porTandas,
+  estadoPreparaciones, sumarDias, diasEntre, diaSemana,
 } from "../js/calc.js";
 
 const cerca = (a, b) => assert.ok(Math.abs(a - b) < 1e-6, `${a} ≠ ${b}`);
@@ -104,4 +105,42 @@ test("por tandas: solo capacidad → máximos por tanda", () => {
   cerca(r.maxCarne, 700);
   cerca(r.maxVerdura, 200);
   assert.equal(r.tandas, undefined);
+});
+
+test("calendario: 102 bolsitas el sábado 10 oct 2026", () => {
+  const reg = [{ fecha: "2026-10-10", bolsitas: 102 }];
+  const r = estadoPreparaciones(reg, "2026-10-10");
+  assert.equal(r.quedanHoy, 102);
+  assert.equal(r.ultimoDia, "2026-11-30"); // 51 días, comiendo desde el 11 oct
+  assert.equal(r.proximaPreparacion, "2026-11-28"); // sábado antes de que se acaben
+  assert.equal(r.quedanEseDia, 6); // 28, 29 y 30 nov
+  assert.equal(r.encargarCarne, "2026-11-14"); // dos sábados antes
+  assert.equal(estadoPreparaciones(reg, "2026-10-11").quedanHoy, 100);
+  assert.equal(estadoPreparaciones(reg, "2026-11-01").quedanHoy, 102 - 2 * 22);
+});
+
+test("calendario: lo que sobra se suma a la siguiente preparación", () => {
+  const reg = [{ fecha: "2026-10-10", bolsitas: 102 }, { fecha: "2026-11-28", bolsitas: 100 }];
+  const r = estadoPreparaciones(reg, "2026-11-28");
+  assert.equal(r.quedanHoy, 4 + 100); // al cerrar el 28: quedaban 6, comió 2, + 100
+  assert.equal(r.ultimoDia, sumarDias("2026-11-28", 52));
+});
+
+test("calendario: ya se acabaron", () => {
+  const r = estadoPreparaciones([{ fecha: "2026-10-10", bolsitas: 4 }], "2026-10-20");
+  assert.equal(r.quedanHoy, 0);
+  assert.equal(r.proximaPreparacion, null);
+});
+
+test("calendario: sin sábado a tiempo", () => {
+  // Domingo 11 oct con 6 bolsitas: alcanzan hasta el miércoles 14, no hay sábado antes.
+  const r = estadoPreparaciones([{ fecha: "2026-10-11", bolsitas: 6 }], "2026-10-11");
+  assert.equal(r.ultimoDia, "2026-10-14");
+  assert.equal(r.proximaPreparacion, null);
+});
+
+test("fechas: días entre y día de la semana", () => {
+  assert.equal(diasEntre("2026-10-10", "2026-11-30"), 51);
+  assert.equal(diaSemana("2026-10-10"), 6);
+  assert.equal(sumarDias("2026-12-31", 1), "2027-01-01");
 });
