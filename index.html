@@ -45,7 +45,7 @@
     <!-- Convertidor -->
     <section class="card" id="convertidor">
       <h2>Convertidor carne ⇄ verdura</h2>
-      <p class="hint">Escribe cuánto tienes de un ingrediente y te digo cuánto necesitas del otro.</p>
+      <p class="hint">Escribe cuánto tienes (o cuánto vas a echar en la taza) de un ingrediente y te digo cuánto necesitas del otro.</p>
       <div class="seg" role="radiogroup" aria-label="Ingrediente que tengo">
         <label><input type="radio" name="conv-tipo" value="carne" checked> Tengo carne</label>
         <label><input type="radio" name="conv-tipo" value="verdura"> Tengo verdura</label>
@@ -61,6 +61,38 @@
         </label>
       </div>
       <output id="conv-res" class="result" for="conv-cant"></output>
+    </section>
+
+    <!-- Mezclar por tandas (la taza no da para todo de una vez) -->
+    <section class="card" id="tandas">
+      <h2>Mezclar por tandas</h2>
+      <p class="hint">Si la taza no da para mezclar todo de una vez: pon cuánto cabe y cuánto vas a preparar en total.</p>
+      <div class="row">
+        <label class="field grow">
+          <span>Mezcla que cabe en la taza</span>
+          <input id="t-cap" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
+        </label>
+        <label class="field">
+          <span>Unidad</span>
+          <select id="t-cap-unidad"><option value="g">g</option><option value="kg">kg</option></select>
+        </label>
+      </div>
+      <output id="t-max" class="result" for="t-cap"></output>
+      <div class="seg" role="radiogroup" aria-label="Ingrediente del total a preparar">
+        <label><input type="radio" name="t-tipo" value="carne" checked> Total de carne</label>
+        <label><input type="radio" name="t-tipo" value="verdura"> Total de verdura</label>
+      </div>
+      <div class="row">
+        <label class="field grow">
+          <span id="t-label">Carne a preparar en total</span>
+          <input id="t-total" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
+        </label>
+        <label class="field">
+          <span>Unidad</span>
+          <select id="t-total-unidad"><option value="kg">kg</option><option value="g">g</option></select>
+        </label>
+      </div>
+      <output id="t-res" class="result" for="t-cap t-total"></output>
     </section>
 
     <!-- Preparación con lo que hay -->

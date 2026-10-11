@@ -13,6 +13,7 @@ Si la dieta cambia, se ajusta en un solo lugar: `RACION` en `js/calc.js`.
 ## Qué hace
 
 - **Convertidor carne ⇄ verdura:** "tengo X kg de carne, ¿cuánta verdura necesito?" (o al revés), y cuántas bolsitas y días rinde.
+- **Mezclar por tandas:** para cuando la taza no da para todo de una vez. Con lo que cabe en la taza (se recuerda) y la carne o verdura total a preparar, dice cuántas tandas iguales hacer y cuánta carne y verdura echar en cada una.
 - **¿Cuánto preparo con lo que tengo?:** con la carne y la verdura disponibles, cuánto usar de cada una, qué sobra y cuánto falta comprar para aprovechar todo.
 - **¿Cuánto compro para varios días?:** carne, verdura y bolsitas para N días.
 - **¿Cuántas bolsitas quedan?:** según la comida preparada y la utilizada (en bolsitas, días, kg o g).

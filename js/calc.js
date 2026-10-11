@@ -95,3 +95,27 @@ export function cuantoQueda(preparado, usado) {
   const queda = Math.max(0, preparado - usado);
   return { usadoDeMas: usado > preparado, ...rendimiento(queda) };
 }
+
+// La taza de mezclar tiene capacidad para `capacidad` gramos de mezcla.
+// Devuelve lo máximo de carne y verdura por tanda y, si se indica `carneTotal`,
+// cuántas tandas iguales hacen falta y cuánto echar de cada ingrediente en cada una.
+export function porTandas(capacidad, carneTotal = 0) {
+  const r = {
+    maxCarne: (capacidad * RACION.carneDia) / totalDia,
+    maxVerdura: (capacidad * RACION.verduraDia) / totalDia,
+  };
+  if (!carneTotal) return r;
+  const verduraTotal = carneTotal / proporcion;
+  const total = carneTotal + verduraTotal;
+  const tandas = Math.max(1, Math.ceil(total / capacidad - 1e-9));
+  return {
+    ...r,
+    carneTotal,
+    verduraTotal,
+    total,
+    tandas,
+    carneTanda: carneTotal / tandas,
+    verduraTanda: verduraTotal / tandas,
+    mezclaTanda: total / tandas,
+  };
+}

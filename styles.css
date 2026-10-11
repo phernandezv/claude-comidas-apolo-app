@@ -132,6 +132,7 @@ input[type="text"]:focus, select:focus { outline: 2px solid var(--accent); outli
 .seg label:has(input:focus-visible) { outline: 2px solid var(--accent-strong); outline-offset: -2px; }
 
 .result { display: block; }
+.result:not(:empty) + .seg { margin-top: 14px; }
 .result:not(:empty) { border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 4px; }
 .line { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
 .line span { color: var(--muted); }

@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   totalDia, gramosBolsita, carneBolsita, verduraBolsita, proporcion,
-  desdeCarne, desdeVerdura, conLoQueTengo, paraDias, aGramos, cuantoQueda,
+  desdeCarne, desdeVerdura, conLoQueTengo, paraDias, aGramos, cuantoQueda, porTandas,
 } from "../js/calc.js";
 
 const cerca = (a, b) => assert.ok(Math.abs(a - b) < 1e-6, `${a} ≠ ${b}`);
@@ -81,4 +81,27 @@ test("cuánto queda: usado de más", () => {
   const r = cuantoQueda(1000, 2000);
   assert.equal(r.usadoDeMas, true);
   assert.equal(r.bolsitas, 0);
+});
+
+test("por tandas: taza de 1,5 kg, 3,5 kg de carne → 3 tandas de 1,17 kg carne + 333 g verdura", () => {
+  const r = porTandas(1500, 3500);
+  cerca(r.maxCarne, 1500 * 350 / 450);
+  cerca(r.maxVerdura, 1500 * 100 / 450);
+  assert.equal(r.tandas, 3);
+  cerca(r.carneTanda, 3500 / 3);
+  cerca(r.verduraTanda, 1000 / 3);
+  cerca(r.mezclaTanda, 1500);
+});
+
+test("por tandas: si cabe todo es una sola tanda", () => {
+  const r = porTandas(2000, 700);
+  assert.equal(r.tandas, 1);
+  cerca(r.verduraTanda, 200);
+});
+
+test("por tandas: solo capacidad → máximos por tanda", () => {
+  const r = porTandas(900);
+  cerca(r.maxCarne, 700);
+  cerca(r.maxVerdura, 200);
+  assert.equal(r.tandas, undefined);
 });

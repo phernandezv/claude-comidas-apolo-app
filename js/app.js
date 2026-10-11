@@ -1,6 +1,6 @@
 import {
   RACION, totalDia, gramosBolsita, carneBolsita, verduraBolsita, proporcion,
-  desdeCarne, desdeVerdura, conLoQueTengo, paraDias, aGramos, cuantoQueda,
+  desdeCarne, desdeVerdura, conLoQueTengo, paraDias, aGramos, cuantoQueda, porTandas, rendimiento,
 } from "./calc.js";
 
 const $ = (sel) => document.querySelector(sel);
@@ -77,6 +77,43 @@ function convertir() {
 }
 ["#conv-cant", "#conv-unidad"].forEach((s) => $(s).addEventListener("input", convertir));
 document.querySelectorAll("input[name=conv-tipo]").forEach((el) => el.addEventListener("change", convertir));
+
+// ---- Mezclar por tandas ----
+// La capacidad de la taza no cambia: se recuerda en este navegador.
+const CLAVE_TAZA = "apolo.taza.v1";
+try {
+  const t = JSON.parse(localStorage.getItem(CLAVE_TAZA));
+  if (t) { $("#t-cap").value = t.cantidad; $("#t-cap-unidad").value = t.unidad; }
+} catch { /* sin almacenamiento */ }
+
+function tandas() {
+  const tipo = document.querySelector("input[name=t-tipo]:checked").value;
+  $("#t-label").textContent = tipo === "carne" ? "Carne a preparar en total" : "Verdura a preparar en total";
+  const cap = leer($("#t-cap"));
+  try { localStorage.setItem(CLAVE_TAZA, JSON.stringify({ cantidad: $("#t-cap").value, unidad: $("#t-cap-unidad").value })); } catch { /* idem */ }
+  if (!cap) { $("#t-max").innerHTML = ""; $("#t-res").innerHTML = ""; return; }
+  const capG = aGramos(cap, $("#t-cap-unidad").value);
+  let total = leer($("#t-total"));
+  total = total ? aGramos(total, $("#t-total-unidad").value) : 0;
+  const carneTotal = tipo === "carne" ? total : desdeVerdura(total).carne;
+  const r = porTandas(capG, carneTotal);
+  $("#t-max").innerHTML =
+    '<p class="hint">Como máximo por tanda:</p>' +
+    linea("Carne", peso(r.maxCarne), "carne") +
+    linea("Verdura", peso(r.maxVerdura), "verdura");
+  if (!r.tandas) { $("#t-res").innerHTML = ""; return; }
+  $("#t-res").innerHTML =
+    linea("Tandas", `${r.tandas} ${plural(r.tandas, "tanda", "tandas")} iguales`, "big") +
+    linea("Carne por tanda", peso(r.carneTanda), "big carne") +
+    linea("Verdura por tanda", peso(r.verduraTanda), "big verdura") +
+    linea("Mezcla por tanda", peso(r.mezclaTanda)) +
+    linea("Carne en total", peso(r.carneTotal)) +
+    linea("Verdura en total", peso(r.verduraTotal)) +
+    lineasRendimiento(rendimiento(r.total));
+}
+["#t-cap", "#t-cap-unidad", "#t-total", "#t-total-unidad"].forEach((s) => $(s).addEventListener("input", tandas));
+document.querySelectorAll("input[name=t-tipo]").forEach((el) => el.addEventListener("change", tandas));
+tandas();
 
 // ---- Preparar con lo que tengo ----
 let bolsitasPreparables = 0;
