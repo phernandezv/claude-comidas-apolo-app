@@ -5,6 +5,7 @@ import {
   totalDia, gramosBolsita, carneBolsita, verduraBolsita, proporcion,
   desdeCarne, desdeVerdura, conLoQueTengo, paraDias, aGramos, cuantoQueda, porTandas,
   estadoPreparaciones, sumarDias, diasEntre, diaSemana, bolsitasPorPreparacion,
+  historialPreparaciones,
 } from "../js/calc.js";
 
 const cerca = (a, b) => assert.ok(Math.abs(a - b) < 1e-6, `${a} ≠ ${b}`);
@@ -149,4 +150,31 @@ test("próxima preparación: 90 bolsitas = 45 días = 15,75 kg carne + 4,5 kg ve
   assert.equal(bolsitasPorPreparacion, 90);
   assert.equal(bolsitasPorPreparacion * carneBolsita, 15750);
   assert.equal(bolsitasPorPreparacion * verduraBolsita, 4500);
+});
+
+test("historial: cada preparación con su rango de fechas", () => {
+  const reg = [{ fecha: "2026-10-10", bolsitas: 102 }, { fecha: "2026-11-28", bolsitas: 90 }];
+  const h = historialPreparaciones(reg, "2026-12-05");
+  assert.equal(h.length, 2);
+  assert.deepEqual(
+    { desde: h[0].desde, hasta: h[0].hasta, estado: h[0].estado, quedanHoy: h[0].quedanHoy },
+    { desde: "2026-10-11", hasta: "2026-11-30", estado: "terminada", quedanHoy: 0 },
+  );
+  // Al cerrar el 28 nov quedaban 4 de la anterior (29 y 30 nov); la nueva arranca el 1 dic.
+  assert.equal(h[1].quedabanAntes, 4);
+  assert.equal(h[1].desde, "2026-12-01");
+  assert.equal(h[1].hasta, sumarDias("2026-12-01", 44)); // 90 bolsitas = 45 días
+  assert.equal(h[1].estado, "en curso");
+  assert.equal(h[1].quedanHoy, 90 - 2 * 5); // 1 al 5 dic
+  // El total coincide con el estado general.
+  assert.equal(h[0].quedanHoy + h[1].quedanHoy, estadoPreparaciones(reg, "2026-12-05").quedanHoy);
+});
+
+test("historial: la nueva queda en espera mientras se come la anterior", () => {
+  const reg = [{ fecha: "2026-10-10", bolsitas: 102 }, { fecha: "2026-11-28", bolsitas: 90 }];
+  const h = historialPreparaciones(reg, "2026-11-29");
+  assert.equal(h[0].estado, "en curso");
+  assert.equal(h[1].estado, "en espera");
+  assert.equal(h[0].quedanHoy, 2);
+  assert.equal(h[1].quedanHoy, 90);
 });

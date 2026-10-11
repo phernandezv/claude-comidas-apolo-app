@@ -193,3 +193,56 @@ export function estadoPreparaciones(registro, hoy) {
   }
   return r;
 }
+
+// Historial: cada preparación con su propio rango de fechas. Se come primero lo más
+// viejo (lo que sobraba de la anterior) y después lo nuevo, con el mismo supuesto que
+// estadoPreparaciones (el día de la preparación no se toca lo nuevo). Devuelve, en
+// orden de fecha, cada preparación con:
+//  - quedabanAntes: bolsitas que sobraban de las anteriores al cerrar ese día.
+//  - desde / hasta: primer y último día en que Apolo come de esa preparación
+//    (si todavía no se acaba, `hasta` es la proyección).
+//  - quedanHoy: bolsitas de esa preparación que quedan al cerrar `hoy`.
+//  - estado: "terminada", "en curso" o "en espera" (todavía se come de la anterior).
+export function historialPreparaciones(registro, hoy) {
+  const orden = [...registro]
+    .map((p, i) => ({ ...p, i }))
+    .sort((a, b) => diasEntre(b.fecha, a.fecha) || a.i - b.i);
+  if (!orden.length) return [];
+  const lotes = orden.map((p) => ({
+    fecha: p.fecha, bolsitas: p.bolsitas, quedabanAntes: 0, desde: null, hasta: null, restan: p.bolsitas, quedanHoy: 0,
+  }));
+  let siguiente = 0; // próximo lote por entrar al congelador
+  const enCongelador = []; // lotes ya preparados con bolsitas, del más viejo al más nuevo
+  let dia = lotes[0].fecha;
+  for (let i = 0; i < 100000; i++) {
+    if (dia !== lotes[0].fecha) {
+      // Comidas del día: primero de lo más viejo.
+      let porComer = RACION.tomasDia;
+      while (porComer > 0 && enCongelador.length) {
+        const l = enCongelador[0];
+        if (!l.desde) l.desde = dia;
+        l.hasta = dia;
+        const come = Math.min(porComer, l.restan);
+        l.restan -= come;
+        porComer -= come;
+        if (l.restan === 0) enCongelador.shift();
+      }
+    }
+    while (siguiente < lotes.length && lotes[siguiente].fecha === dia) {
+      const l = lotes[siguiente++];
+      l.quedabanAntes = enCongelador.reduce((s, x) => s + x.restan, 0);
+      enCongelador.push(l);
+    }
+    if (dia === hoy) for (const l of lotes) l.quedanHoy = l.restan;
+    if (siguiente === lotes.length && !enCongelador.length && diasEntre(hoy, dia) >= 0) break;
+    dia = sumarDias(dia, 1);
+  }
+  return lotes.map(({ restan, ...l }) => {
+    let estado = "en espera";
+    if (l.hasta && diasEntre(hoy, l.hasta) < 0) estado = "terminada";
+    else if (l.desde && diasEntre(l.desde, hoy) >= 0) estado = "en curso";
+    // Antes de `hoy` nunca se calculó quedanHoy: si la fecha es futura, aún no existe.
+    if (diasEntre(hoy, l.fecha) > 0) l.quedanHoy = 0;
+    return { ...l, estado };
+  });
+}

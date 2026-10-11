@@ -1,7 +1,7 @@
 import {
   RACION, totalDia, gramosBolsita, carneBolsita, verduraBolsita, proporcion,
   desdeCarne, desdeVerdura, conLoQueTengo, paraDias, aGramos, cuantoQueda, porTandas, rendimiento,
-  estadoPreparaciones, sumarDias, diasEntre, DIAS_POR_PREPARACION, bolsitasPorPreparacion,
+  estadoPreparaciones, historialPreparaciones, sumarDias, diasEntre, DIAS_POR_PREPARACION, bolsitasPorPreparacion,
 } from "./calc.js";
 
 const $ = (sel) => document.querySelector(sel);
@@ -204,6 +204,7 @@ function hoyIso() {
 }
 const fechaLarga = new Intl.DateTimeFormat("es-CR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 const fechaCorta = new Intl.DateTimeFormat("es-CR", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const fechaMedia = new Intl.DateTimeFormat("es-CR", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
 const fecha = (iso, fmt = fechaLarga) => fmt.format(new Date(iso + "T00:00:00Z"));
 
 // "hoy", "mañana", "en 5 días", "hace 2 días".
@@ -261,22 +262,39 @@ function pintarSeguimiento() {
 
   const ul = $("#seg-registro");
   ul.innerHTML = "";
-  const orden = [...registro].sort((a, b) => diasEntre(a.fecha, b.fecha));
-  if (!orden.length) ul.innerHTML = '<li class="muted">Sin preparaciones todavía.</li>';
-  for (const p of orden) {
+  const historial = historialPreparaciones(registro, hoy);
+  if (!historial.length) ul.innerHTML = '<li class="muted">Sin preparaciones todavía.</li>';
+  // La más reciente arriba.
+  historial.reverse().forEach((h, k) => {
     const li = document.createElement("li");
-    li.innerHTML = `<span>${fecha(p.fecha, fechaCorta)}</span>
-      <span class="in">+${p.bolsitas} bolsitas</span>
-      <button class="link quitar" type="button" aria-label="Borrar">Borrar</button>`;
+    li.className = `prep ${h.estado.replace(" ", "-")}`;
+    const n = historial.length - k;
+    let rango = "Todavía no se empieza a comer.";
+    if (h.desde) {
+      const dias = diasEntre(h.desde, h.hasta) + 1;
+      rango = `Se come del <strong>${fecha(h.desde, fechaMedia)}</strong> al <strong>${fecha(h.hasta, fechaMedia)}</strong> ` +
+        `<span class="muted">(${dias} ${plural(dias, "día", "días")}${h.estado === "terminada" ? "" : ", estimado"})</span>`;
+    }
+    const extras = [];
+    if (h.quedabanAntes) extras.push(`Al preparar quedaban ${h.quedabanAntes} de la anterior.`);
+    if (h.estado !== "terminada" && diasEntre(h.fecha, hoy) >= 0) extras.push(`Quedan hoy: <strong>${h.quedanHoy}</strong>.`);
+    li.innerHTML = `<div class="prep-cab">
+        <strong>#${n} · ${fecha(h.fecha, fechaCorta)}</strong>
+        <span class="chip">${h.estado}</span>
+      </div>
+      <div><span class="in">${h.bolsitas} bolsitas</span> · ${rango}</div>
+      ${extras.length ? `<div class="muted">${extras.join(" ")}</div>` : ""}
+      <button class="link quitar" type="button">Borrar</button>`;
+    const original = registro.find((x) => x.fecha === h.fecha && x.bolsitas === h.bolsitas);
     li.querySelector(".quitar").addEventListener("click", () => {
-      if (confirm(`¿Borrar la preparación del ${fecha(p.fecha)} (${p.bolsitas} bolsitas)?`)) {
-        registro = registro.filter((x) => x !== p);
+      if (confirm(`¿Borrar la preparación del ${fecha(h.fecha)} (${h.bolsitas} bolsitas)?`)) {
+        registro = registro.filter((x) => x !== original);
         guardarRegistro();
         pintarSeguimiento();
       }
     });
     ul.append(li);
-  }
+  });
 }
 
 $("#seg-fecha").value = hoyIso();
