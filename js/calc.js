@@ -136,6 +136,9 @@ export const diaSemana = (iso) => new Date(aDia(iso) * DIA_MS).getUTCDay();
 
 export const SABADO = 6;
 export const SEMANAS_ANTES_ENCARGO = 2; // la carne se encarga dos sábados antes de preparar
+// Cada preparación se calcula para mes y medio de comida: 45 días = 90 bolsitas.
+export const DIAS_POR_PREPARACION = 45;
+export const bolsitasPorPreparacion = DIAS_POR_PREPARACION * RACION.tomasDia;
 
 // Simula día a día el congelador a partir del registro de preparaciones
 // ([{ fecha, bolsitas }]). Supuesto: el día de una preparación las bolsitas nuevas

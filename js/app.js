@@ -1,7 +1,7 @@
 import {
   RACION, totalDia, gramosBolsita, carneBolsita, verduraBolsita, proporcion,
   desdeCarne, desdeVerdura, conLoQueTengo, paraDias, aGramos, cuantoQueda, porTandas, rendimiento,
-  estadoPreparaciones, sumarDias, diasEntre,
+  estadoPreparaciones, sumarDias, diasEntre, DIAS_POR_PREPARACION, bolsitasPorPreparacion,
 } from "./calc.js";
 
 const $ = (sel) => document.querySelector(sel);
@@ -240,14 +240,14 @@ function pintarSeguimiento() {
       html = paso("⚠️", `Preparar antes del ${fecha(e.ultimoDia)}`,
         "No queda ningún sábado antes de que se acaben.", "alerta");
     } else {
-      // Para la próxima, la misma cantidad que la última preparación.
-      const n = e.ultimaPreparacion.bolsitas;
+      // La próxima se calcula para mes y medio de comida (45 días = 90 bolsitas).
+      const n = bolsitasPorPreparacion;
       const encargoPasado = diasEntre(hoy, e.encargarCarne) < 0;
       html =
         paso("🥩", `Encargar la carne: ${fecha(e.encargarCarne)}`,
           (encargoPasado ? "<span class=\"warn\">La fecha ya pasó: si todavía no la encargaron, háganlo cuanto antes.</span> "
             : `<span class="muted">${cuando(e.encargarCarne, hoy)}</span> · `) +
-          `Para ${n} bolsitas: ${peso(n * carneBolsita)} de carne y ${peso(n * verduraBolsita)} de verdura.`,
+          `Para ${n} bolsitas (${DIAS_POR_PREPARACION} días): <strong>${peso(n * carneBolsita)} de carne</strong> y <strong>${peso(n * verduraBolsita)} de verdura</strong>.`,
           encargoPasado ? "alerta" : "") +
         paso("🍲", `Próxima preparación: ${fecha(e.proximaPreparacion)}`,
           `<span class="muted">${cuando(e.proximaPreparacion, hoy)}</span> · Ese día quedarán ` +

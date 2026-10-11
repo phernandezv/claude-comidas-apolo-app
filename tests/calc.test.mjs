@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {
   totalDia, gramosBolsita, carneBolsita, verduraBolsita, proporcion,
   desdeCarne, desdeVerdura, conLoQueTengo, paraDias, aGramos, cuantoQueda, porTandas,
-  estadoPreparaciones, sumarDias, diasEntre, diaSemana,
+  estadoPreparaciones, sumarDias, diasEntre, diaSemana, bolsitasPorPreparacion,
 } from "../js/calc.js";
 
 const cerca = (a, b) => assert.ok(Math.abs(a - b) < 1e-6, `${a} ≠ ${b}`);
@@ -143,4 +143,10 @@ test("fechas: días entre y día de la semana", () => {
   assert.equal(diasEntre("2026-10-10", "2026-11-30"), 51);
   assert.equal(diaSemana("2026-10-10"), 6);
   assert.equal(sumarDias("2026-12-31", 1), "2027-01-01");
+});
+
+test("próxima preparación: 90 bolsitas = 45 días = 15,75 kg carne + 4,5 kg verdura", () => {
+  assert.equal(bolsitasPorPreparacion, 90);
+  assert.equal(bolsitasPorPreparacion * carneBolsita, 15750);
+  assert.equal(bolsitasPorPreparacion * verduraBolsita, 4500);
 });
