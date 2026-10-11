@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comidas de Apolo</title>
+  <meta name="description" content="Ración diaria de Apolo, convertidor carne/verdura y conteo de bolsitas de comida.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐕</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <p class="kicker">Golden Retriever</p>
+      <h1>Comidas de Apolo</h1>
+      <p class="lead">Ración diaria, proporción carne/verdura y conteo de bolsitas preparadas.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Ración diaria (informativo) -->
+    <section class="card" id="racion">
+      <h2>Ración diaria</h2>
+      <div class="stats">
+        <div class="stat carne"><span class="num" data-v="carneDia"></span><span class="lbl">carne</span></div>
+        <div class="stat verdura"><span class="num" data-v="verduraDia"></span><span class="lbl">verdura</span></div>
+        <div class="stat"><span class="num" data-v="totalDia"></span><span class="lbl">total por día</span></div>
+      </div>
+      <p>Se divide en <strong data-v="tomasDia"></strong> comidas al día, una <strong>bolsita</strong> de
+        <strong data-v="gramosBolsita"></strong> por comida:
+        <strong data-v="carneBolsita"></strong> de carne + <strong data-v="verduraBolsita"></strong> de verdura.</p>
+      <p class="hint">Proporción: <strong data-v="proporcion"></strong> gramos de carne por cada gramo de verdura
+        (<span data-v="pctCarne"></span> carne, <span data-v="pctVerdura"></span> verdura).</p>
+    </section>
+
+    <!-- Convertidor -->
+    <section class="card" id="convertidor">
+      <h2>Convertidor carne ⇄ verdura</h2>
+      <p class="hint">Escribe cuánto tienes de un ingrediente y te digo cuánto necesitas del otro.</p>
+      <div class="seg" role="radiogroup" aria-label="Ingrediente que tengo">
+        <label><input type="radio" name="conv-tipo" value="carne" checked> Tengo carne</label>
+        <label><input type="radio" name="conv-tipo" value="verdura"> Tengo verdura</label>
+      </div>
+      <div class="row">
+        <label class="field grow">
+          <span id="conv-label">Carne</span>
+          <input id="conv-cant" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+        </label>
+        <label class="field">
+          <span>Unidad</span>
+          <select id="conv-unidad"><option value="kg">kg</option><option value="g">g</option></select>
+        </label>
+      </div>
+      <output id="conv-res" class="result" for="conv-cant"></output>
+    </section>
+
+    <!-- Preparación con lo que hay -->
+    <section class="card" id="preparar">
+      <h2>¿Cuánto preparo con lo que tengo?</h2>
+      <p class="hint">Si te sobró o te faltó carne o verdura, pon lo que tienes de ambos.</p>
+      <div class="row">
+        <label class="field grow">
+          <span>Carne</span>
+          <input id="prep-carne" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+        </label>
+        <label class="field grow">
+          <span>Verdura</span>
+          <input id="prep-verdura" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+        </label>
+        <label class="field">
+          <span>Unidad</span>
+          <select id="prep-unidad"><option value="kg">kg</option><option value="g">g</option></select>
+        </label>
+      </div>
+      <output id="prep-res" class="result" for="prep-carne prep-verdura"></output>
+      <button id="prep-agregar" class="btn" type="button" hidden></button>
+    </section>
+
+    <!-- Planificar por días -->
+    <section class="card" id="dias">
+      <h2>¿Cuánto compro para varios días?</h2>
+      <div class="row">
+        <label class="field grow">
+          <span>Días de comida</span>
+          <input id="dias-cant" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
+        </label>
+      </div>
+      <output id="dias-res" class="result" for="dias-cant"></output>
+    </section>
+
+    <!-- Calculadora de bolsitas restantes -->
+    <section class="card" id="quedan">
+      <h2>¿Cuántas bolsitas quedan?</h2>
+      <p class="hint">Según cuánta comida se preparó y cuánta se ha usado.</p>
+      <div class="row">
+        <label class="field grow">
+          <span>Comida preparada</span>
+          <input id="q-prep" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+        </label>
+        <label class="field">
+          <span>Unidad</span>
+          <select id="q-prep-unidad">
+            <option value="bolsitas">bolsitas</option><option value="kg">kg</option><option value="g">g</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <label class="field grow">
+          <span>Comida utilizada</span>
+          <input id="q-usado" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+        </label>
+        <label class="field">
+          <span>Unidad</span>
+          <select id="q-usado-unidad">
+            <option value="bolsitas">bolsitas</option><option value="dias">días</option>
+            <option value="kg">kg</option><option value="g">g</option>
+          </select>
+        </label>
+      </div>
+      <output id="q-res" class="result" for="q-prep q-usado"></output>
+    </section>
+
+    <!-- Inventario con seguimiento -->
+    <section class="card" id="inventario">
+      <h2>Bolsitas en el congelador</h2>
+      <div class="inv">
+        <div class="inv-num"><span id="inv-count">0</span><span class="lbl">bolsitas</span></div>
+        <p id="inv-dias" class="hint"></p>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button" data-usar="1">Usé 1 bolsita</button>
+        <button class="btn" type="button" data-usar="2">Usé un día (2)</button>
+      </div>
+      <div class="row">
+        <label class="field grow">
+          <span>Bolsitas nuevas preparadas</span>
+          <input id="inv-nuevas" type="number" inputmode="numeric" min="1" step="1" placeholder="0">
+        </label>
+        <button id="inv-agregar" class="btn primary" type="button">Agregar</button>
+      </div>
+      <h3>Historial</h3>
+      <ul id="inv-historial" class="log"></ul>
+      <p class="hint small">El conteo se guarda solo en este navegador y dispositivo.
+        <button id="inv-reiniciar" class="link" type="button">Reiniciar conteo</button></p>
+    </section>
+  </main>
+
+  <footer class="wrap foot">Hecho con cariño para Apolo 🐾</footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
